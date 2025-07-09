@@ -25,12 +25,12 @@ O projeto foi construído sobre três pilares fundamentais:
 O código-fonte está organizado na pasta `src/` com a seguinte estrutura:
 
 src/
-├── main.cpp                # Ponto de entrada, inicialização e criação das tarefas.
-├── config.h                # Configurações globais, pinos e definições do sistema.
-├── controller.h / .cpp     # Implementação do algoritmo de controle PID.
-├── mux.h / .cpp            # Abstração para controle do hardware do multiplexador.
-├── plant.h / .cpp          # Abstração para leitura (ADC) e escrita (DAC) nas plantas.
-└── setpoint.h / .cpp       # Geração do perfil de referência (setpoint) ao longo do tempo.
+    ├── main.cpp                # Ponto de entrada, inicialização e criação das tarefas.
+    ├── config.h                # Configurações globais, pinos e definições do sistema.
+    ├── controller.h / .cpp     # Implementação do algoritmo de controle PID.
+    ├── mux.h / .cpp            # Abstração para controle do hardware do multiplexador.
+    ├── plant.h / .cpp          # Abstração para leitura (ADC) e escrita (DAC) nas plantas.
+    └── setpoint.h / .cpp       # Geração do perfil de referência (setpoint) ao longo do tempo.
 
 ## Fluxo de Funcionamento
 
