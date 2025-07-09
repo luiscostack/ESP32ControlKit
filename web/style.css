@@ -1,0 +1,90 @@
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    margin: 0; 
+    background-color: #f0f2f5; 
+    display: flex; 
+    flex-wrap: wrap; 
+}
+
+.sidebar { 
+    width: 350px; 
+    padding: 20px; 
+    background-color: #fff; 
+    height: 100vh; 
+    overflow-y: auto; 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+}
+
+.main-content { 
+    flex-grow: 1; 
+    padding: 20px; 
+}
+
+.form-group { 
+    margin-bottom: 15px; 
+}
+
+label { 
+    display: block; 
+    margin-bottom: 5px; 
+    font-weight: 600; 
+    color: #333; 
+}
+
+input[type="number"], input[type="text"] { 
+    width: 95%; 
+    padding: 10px; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+}
+
+button { 
+    background-color: #007BFF; 
+    color: white; 
+    padding: 10px 15px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    width: 100%; 
+}
+
+button:hover { 
+    background-color: #0056b3; 
+}
+
+#status { 
+    margin-top: 15px; 
+    padding: 10px; 
+    border-radius: 5px; 
+    text-align: center; 
+    font-weight: bold; 
+}
+
+.connected { 
+    background-color: #d4edda; 
+    color: #155724; 
+}
+
+.disconnected { 
+    background-color: #f8d7da; 
+    color: #721c24; 
+}
+
+fieldset { 
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    padding: 15px; 
+    margin-bottom: 20px; 
+}
+
+legend { 
+    font-weight: bold; 
+    padding: 0 10px; 
+}
+
+.chart-container { 
+    position: relative; 
+    height: 90vh; 
+    width: 100%; 
+}

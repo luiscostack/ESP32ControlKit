@@ -11,6 +11,7 @@
 #include "plant.h"
 #include "controller.h"
 #include "setpoint.h"
+#include "web_server.h"
 
 // --- Definição das variáveis globais e handles do FreeRTOS ---
 // Estas são as definições reais das variáveis declaradas como 'extern' em config.h
@@ -19,11 +20,16 @@ SemaphoreHandle_t xStateMutex;
 SemaphoreHandle_t xControlSemaphore;
 TimerHandle_t xControlTimer;
 
+// Definição e inicialização real das variáveis de Wi-Fi
+const char* WIFI_SSID = "S23 de Luis";
+const char* WIFI_PASSWORD = "luis1234";
+
 // --- Protótipos das Tarefas ---
 void pid_controller_task(void *parameters);
-void setpoint_generator_task(void *parameters);
+// void setpoint_generator_task(void *parameters);
 void serial_plotter_task(void *parameters);
-void combination_selector_task(void *parameters);
+// void combination_selector_task(void *parameters);
+void websocket_plotter_task(void *parameters); 
 
 /**
  * @brief Callback do timer que libera o semáforo para a tarefa de controle.
@@ -39,6 +45,18 @@ void setup() {
     vTaskDelay(pdMS_TO_TICKS(1000)); // Aguarda para o Serial se estabilizar
     Serial.println("--- Inicializando Sistema de Controle PID com FreeRTOS ---");
 
+    // --- SEÇÃO: CONEXÃO WI-FI ---
+    Serial.printf("Conectando à rede Wi-Fi: %s\n", WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    while (WiFi.status() != WL_CONNECTED) {
+        vTaskDelay(pdMS_TO_TICKS(500));
+        Serial.print(".");
+    }
+    Serial.println("\nWi-Fi conectado!");
+    Serial.print("Endereço IP: ");
+    Serial.println(WiFi.localIP());
+    // --- FIM DA NOVA SEÇÃO ---
+
     // 1. Inicialização dos módulos de hardware
     mux_init();
     plant_init();
@@ -48,6 +66,9 @@ void setup() {
     xControlSemaphore = xSemaphoreCreateBinary();
     xControlTimer = xTimerCreate("ControlTimer", pdMS_TO_TICKS(SAMPLE_TIME_MS), pdTRUE, (void *)0, control_timer_callback);
 
+    // INICIALIZAÇÃO DO SERVIDOR WEB
+    setup_web_server();
+
     // Verificação de erros na criação dos objetos RTOS
     if (xStateMutex == NULL || xControlSemaphore == NULL || xControlTimer == NULL) {
         Serial.println("ERRO CRITICO: Falha ao criar objetos do FreeRTOS!");
@@ -56,7 +77,7 @@ void setup() {
 
     // 3. Inicialização do estado do controlador e do sistema de forma segura
     if (xSemaphoreTake(xStateMutex, portMAX_DELAY) == pdTRUE) {
-        controller_init(1.52, 0.01, 0.0);
+        controller_init(0.05, 0.1, 0.0);
         g_systemState.active_plant = 1;      // Inicia com a Planta 1
         g_systemState.mux_combination = 0;   // Inicia com a combinação 0
         xSemaphoreGive(xStateMutex);
@@ -75,9 +96,10 @@ void setup() {
 
     // 5. Criação das tarefas
     xTaskCreate(pid_controller_task, "PID_Controller_Task", 4096, NULL, 3, NULL);
-    xTaskCreate(setpoint_generator_task, "Setpoint_Generator_Task", 2048, NULL, 2, NULL);
+    // xTaskCreate(setpoint_generator_task, "Setpoint_Generator_Task", 2048, NULL, 2, NULL);
     xTaskCreate(serial_plotter_task, "Serial_Plotter_Task", 2048, NULL, 1, NULL);
-    xTaskCreate(combination_selector_task, "Combination_Selector_Task", 2048, NULL, 1, NULL);
+    // xTaskCreate(combination_selector_task, "Combination_Selector_Task", 2048, NULL, 1, NULL);
+    xTaskCreate(websocket_plotter_task, "WebSocket_Plotter_Task", 3072, NULL, 2, NULL);
 
     // 6. Inicia o timer que ditará o ritmo do controle
     xTimerStart(xControlTimer, 0);
@@ -126,7 +148,7 @@ void pid_controller_task(void *parameters) {
  */
 void serial_plotter_task(void *parameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(50); // Roda a 20Hz
+    const TickType_t xFrequency = pdMS_TO_TICKS(150); // Roda a 20Hz
 
     for (;;) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -150,7 +172,7 @@ void serial_plotter_task(void *parameters) {
  * @brief Tarefa que cicla entre as plantas e suas combinações de MUX.
  * Lógica: Planta 1 (comb 0->1->2->3) -> Planta 2 (comb 0->1) -> Repete
  */
-void combination_selector_task(void *parameters) {
+/* void combination_selector_task(void *parameters) {
     for(;;) {
         // Espera um tempo antes de mudar para o próximo estado
         vTaskDelay(pdMS_TO_TICKS(5000)); 
@@ -192,6 +214,48 @@ void combination_selector_task(void *parameters) {
         
         // Reporta a nova seleção para o terminal
         mux_report_selection(new_plant, new_combination);
+    }
+}*/
+
+/**
+ * @brief Tarefa que envia dados de telemetria via WebSocket para o gráfico da página web.
+ */
+void websocket_plotter_task(void *parameters) {
+    const TickType_t xFrequency = pdMS_TO_TICKS(50); // Envia dados 4 vezes por segundo (4Hz)
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    for (;;) {
+        // Aguarda pelo próximo ciclo
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        // Só processa e envia se houver algum cliente web conectado
+        if (ws.count() > 0) {
+            double sp_local, y_local;
+
+            // 1. Lê os dados do estado global de forma segura
+            if (xSemaphoreTake(xStateMutex, portMAX_DELAY) == pdTRUE) {
+                sp_local = g_systemState.sp;
+                y_local = g_systemState.y;
+                xSemaphoreGive(xStateMutex);
+            }
+
+            // 2. Converte para tensão e prepara o pacote JSON
+            double sp_voltage = (sp_local / (double)ADC_RESOLUTION) * VCC;
+            double y_voltage = (y_local / (double)ADC_RESOLUTION) * VCC;
+            unsigned long current_time = millis();
+
+            // Usamos um documento JSON pequeno e estático para eficiência
+            StaticJsonDocument<128> doc;
+            doc["time"] = current_time;
+            doc["sp_v"] = sp_voltage;
+            doc["y_v"] = y_voltage;
+
+            char json_buffer[128];
+            serializeJson(doc, json_buffer);
+
+            // 3. Envia a string JSON para todos os clientes conectados
+            ws.textAll(json_buffer);
+        }
     }
 }
 

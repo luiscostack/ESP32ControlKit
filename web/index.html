@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle PID - ESP32</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Painel de Controle</h2>
+        <div class="form-group">
+            <label for="esp32_ip">IP do ESP32:</label>
+            <input type="text" id="esp32_ip" value="172.23.12.23">
+            <button onclick="connectWebSocket()" style="margin-top:10px;">Conectar</button>
+        </div>
+        <div id="status" class="disconnected">Desconectado</div>
+
+        <hr>
+
+        <fieldset>
+            <legend>Parâmetros do Controlador</legend>
+            <div class="form-group">
+                <label for="kp">Ganho Proporcional (Kp):</label>
+                <input type="number" id="kp" step="0.01" value="1.0">
+            </div>
+            <div class="form-group">
+                <label for="ki">Ganho Integral (Ki):</label>
+                <input type="number" id="ki" step="0.001" value="0.001">
+            </div>
+            <div class="form-group">
+                <label for="kd">Ganho Derivativo (Kd):</label>
+                <input type="number" id="kd" step="0.01" value="0.0">
+            </div>
+             <div class="form-group">
+                <label for="setpoint">Setpoint (0 a 4095):</label>
+                <input type="number" id="setpoint" step="1" value="2048">
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Seleção da Planta</legend>
+            <div class="form-group">
+                <input type="radio" id="planta1" name="planta" value="1" checked>
+                <label for="planta1" style="display:inline;">Planta 1</label>
+                <input type="radio" id="planta2" name="planta" value="2" style="margin-left: 20px;">
+                <label for="planta2" style="display:inline;">Planta 2</label>
+            </div>
+            <div class="form-group">
+                <label for="combinacao">Combinação do MUX:</label>
+                <input type="number" id="combinacao" step="1" min="0" max="3" value="0">
+            </div>
+        </fieldset>
+        
+        <button onclick="sendData()">Enviar Parâmetros</button>
+    </div>
+
+    <div class="main-content">
+        <h2>Gráfico em Tempo Real</h2>
+        <div class="chart-container">
+            <canvas id="pidChart"></canvas>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
