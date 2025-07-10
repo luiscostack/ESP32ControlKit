@@ -10,7 +10,8 @@
 #include <freertos/timers.h>
 #include <driver/dac.h>
 #include <WiFi.h>
-#include <ESPAsyncWebServer.h>
+// #include <ESPAsyncWebServer.h> // nao funciona
+#include <AsyncTCP.h> // Necessário para o AsyncWebServer
 #include <ArduinoJson.h>
 
 // Coloque aqui as credenciais da sua rede Wi-Fi

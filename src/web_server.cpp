@@ -4,6 +4,7 @@
 #include "config.h"
 #include "controller.h" // Para usar controller_set_tunings
 #include "mux.h"        // Para usar mux_report_selection
+#include "spiffs_defs.h" // Para usar initSPIFFS
 
 // --- Definição dos objetos do servidor ---
 AsyncWebServer server(80);
@@ -70,6 +71,14 @@ void setup_web_server() {
     // Anexa o manipulador de eventos ao WebSocket
     ws.onEvent(on_web_socket_event);
     server.addHandler(&ws);
+
+    // --- Configuração das rotas do Web Service ---
+
+    // Serve os arquivos estáticos diretamente da raiz do SPIFFS.
+    // O primeiro argumento é a rota na URL.
+    // O segundo é o sistema de arquivos (SPIFFS).
+    // O terceiro é o caminho do arquivo no SPIFFS.
+    server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
     // Inicia o servidor
     server.begin();

@@ -12,6 +12,7 @@
 #include "controller.h"
 #include "setpoint.h"
 #include "web_server.h"
+#include "spiffs_defs.h"
 
 // --- Definição das variáveis globais e handles do FreeRTOS ---
 // Estas são as definições reais das variáveis declaradas como 'extern' em config.h
@@ -65,6 +66,9 @@ void setup() {
     xStateMutex = xSemaphoreCreateMutex();
     xControlSemaphore = xSemaphoreCreateBinary();
     xControlTimer = xTimerCreate("ControlTimer", pdMS_TO_TICKS(SAMPLE_TIME_MS), pdTRUE, (void *)0, control_timer_callback);
+
+    // INICIALIZAÇÃO DO SPIFFS
+    initSPIFFS();
 
     // INICIALIZAÇÃO DO SERVIDOR WEB
     setup_web_server();
