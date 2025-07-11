@@ -10,9 +10,10 @@
 #include <freertos/timers.h>
 #include <driver/dac.h>
 #include <WiFi.h>
-// #include <ESPAsyncWebServer.h> // nao funciona
 #include <AsyncTCP.h> // Necessário para o AsyncWebServer
+#include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include "spiffs_defs.h" // Para usar initSPIFFS
 
 // Coloque aqui as credenciais da sua rede Wi-Fi
 extern const char* WIFI_SSID;

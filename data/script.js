@@ -127,5 +127,25 @@ function sendData() {
     websocket.send(jsonString);
 }
 
+function sendData() {
+    if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+        alert("WebSocket não está conectado. Por favor, conecte-se primeiro.");
+        return;
+    }
+
+    const data = {
+        kp: parseFloat(document.getElementById('kp').value),
+        ki: parseFloat(document.getElementById('ki').value),
+        kd: parseFloat(document.getElementById('kd').value),
+        setpoint_v: parseFloat(document.getElementById('setpoint').value),
+        planta: parseInt(document.querySelector('input[name="planta"]:checked').value, 10),
+        combinacao: parseInt(document.getElementById('combinacao').value, 10)
+    };
+
+    const jsonString = JSON.stringify(data);
+    console.log("Enviando JSON: ", jsonString);
+    websocket.send(jsonString);
+}
+
 // Inicializa o gráfico quando a página carrega
 window.onload = initChart;

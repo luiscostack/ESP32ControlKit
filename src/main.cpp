@@ -225,12 +225,14 @@ void serial_plotter_task(void *parameters) {
  * @brief Tarefa que envia dados de telemetria via WebSocket para o gráfico da página web.
  */
 void websocket_plotter_task(void *parameters) {
-    const TickType_t xFrequency = pdMS_TO_TICKS(50); // Envia dados 4 vezes por segundo (4Hz)
+    const TickType_t xFrequency = pdMS_TO_TICKS(250); // Envia dados 4 vezes por segundo (4Hz)
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     for (;;) {
         // Aguarda pelo próximo ciclo
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        ws.cleanupClients();
 
         // Só processa e envia se houver algum cliente web conectado
         if (ws.count() > 0) {
