@@ -10,12 +10,12 @@
 #include <freertos/timers.h>
 #include <driver/dac.h>
 #include <WiFi.h>
-#include <AsyncTCP.h> // Necessário para o AsyncWebServer
+#include <AsyncTCP.h> // sem isso, ESPAsyncWebServer nao funciona
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "spiffs_defs.h" // Para usar initSPIFFS
 
-// Coloque aqui as credenciais da sua rede Wi-Fi
+
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASSWORD;
 
@@ -24,31 +24,31 @@ const double VCC = 3.3; // Tensão de operação do ESP32
 const uint16_t ADC_RESOLUTION = 4095; // Resolução do ADC (0-4095 para 12 bits)
 const uint8_t DAC_RESOLUTION = 255;  // Resolução do DAC (0-255 para 8 bits)
 
-// Pinos para a Planta 1 (chamada de A no original)
+// Pinos para a Planta 1
 const int ADC_PIN_PLANT_1 = 34;
-const int DAC_PIN_PLANT_1 = 25; // DAC Channel 1
+const int DAC_PIN_PLANT_1 = 25; // DAC canal 1
 
-// Pinos para a Planta 2 (chamada de B no original)
+// Pinos para a Planta 2 
 const int ADC_PIN_PLANT_2 = 35;
 const int DAC_PIN_PLANT_2 = 26; // DAC Channel 2
 
-// Pinos de controle do Multiplexador (Mux)
+// Pinos de controle do mux
 const int MUX_IN_A_PIN = 32;
 const int MUX_IN_B_PIN = 33;
 
 // --- Configurações do Sistema de Controle ---
-const unsigned long SAMPLE_TIME_MS = 200; // Tempo de amostragem em milissegundos
-const unsigned long TIME_TO_DISCHARGE_MS = 8000; // Tempo para descarga inicial do capacitor
+const unsigned long SAMPLE_TIME_MS = 200; // Tempo de amostragem
+const unsigned long TIME_TO_DISCHARGE_MS = 8000; //
 
 // --- Definições do FreeRTOS ---
 
 // Estrutura para armazenar o estado compartilhado do sistema
 typedef struct {
     double u;          // Sinal de controle
-    double y;          // Saída da planta (leitura do sensor)
-    double sp;         // Setpoint (referência)
+    double y;          // Saída da planta 
+    double sp;         // Referenciah
     double iTerm;      // Termo integral acumulado
-    double lastY;      // Última leitura da saída
+    double lastY;      // Ultima leitura da saida
     double kp, ki, kd; // Ganhos do PID
 
     // Campos para gerenciar o estado completo do sistema
@@ -57,16 +57,16 @@ typedef struct {
 
 } SystemState_t;
 
-// Mutex para proteger o acesso à estrutura de estado compartilhado
+// Mutex para proteger o acesso a estrutura de estado compartilhado
 extern SemaphoreHandle_t xStateMutex;
 
-// Semáforo para sincronizar o loop de controle
+// Semaphore para sincronizar o loop de controle
 extern SemaphoreHandle_t xControlSemaphore;
 
 // Timer para disparar o controle periodicamente
 extern TimerHandle_t xControlTimer;
 
-// Declaração da variável de estado global
+// Declaracaoo da variavel de estado global
 extern SystemState_t g_systemState;
 
 #endif // CONFIG_H

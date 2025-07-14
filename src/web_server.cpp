@@ -5,7 +5,7 @@
 #include "controller.h"
 #include "mux.h"
 
-// Definição dos objetos do servidor
+// instancia dos objetos do servidor
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -28,7 +28,7 @@ void on_web_socket_event(AsyncWebSocket *server, AsyncWebSocketClient *client, A
             }
 
             if (xSemaphoreTake(xStateMutex, portMAX_DELAY) == pdTRUE) {
-                // Atualiza ganhos, planta, etc. (lógica existente)
+                // Atualizacao das variaveis do sistema a partir do JSON recebido
                 if (doc.containsKey("kp") && doc.containsKey("ki") && doc.containsKey("kd")) {
                     controller_set_tunings(doc["kp"], doc["ki"], doc["kd"]);
                     Serial.printf("Ganhos PID atualizados: Kp=%.3f, Ki=%.3f, Kd=%.3f\n", (double)doc["kp"], (double)doc["ki"], (double)doc["kd"]);
@@ -43,15 +43,14 @@ void on_web_socket_event(AsyncWebSocket *server, AsyncWebSocketClient *client, A
                 if (doc.containsKey("setpoint_v")) {
                     double received_sp_voltage = doc["setpoint_v"];
 
-                    // Passo 1: Clamping (Saturação) do valor recebido
-                    // Garante que o valor usado para o cálculo nunca seja maior que VCC ou menor que 0
+                    // valor usado para o calculo nunca seja maior que VCC ou menor que 0
                     if (received_sp_voltage > VCC) {
                         received_sp_voltage = VCC;
                     } else if (received_sp_voltage < 0.0) {
                         received_sp_voltage = 0.0;
                     }
 
-                    // Passo 2: Conversão e atualização com o valor já validado e "clampado"
+                    //Conversao e atualizacaoo com o valor já validado e 
                     g_systemState.sp = (received_sp_voltage / VCC) * ADC_RESOLUTION;
                     
                     Serial.printf("Setpoint recebido: %.4f V -> Valor usado: %.4f V -> Convertido para: %.0f\n", 
@@ -70,11 +69,6 @@ void setup_web_server() {
     server.begin();
 
      // --- Configuração das rotas do Web Service ---
-
-    // Serve os arquivos estáticos diretamente da raiz do SPIFFS.
-    // O primeiro argumento é a rota na URL.
-    // O segundo é o sistema de arquivos (SPIFFS).
-    // O terceiro é o caminho do arquivo no SPIFFS.
 
     server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
     Serial.println("Servidor Web e WebSocket iniciados.");
