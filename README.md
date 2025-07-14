@@ -40,7 +40,7 @@ src/
 
     └── spiffs_Defs.h / .cpp    # Implementação das funções de armazenamento na memória.
 
-    └── spiffs_Defs.h / .cpp    # Criação do e inicialização objeto websocket
+    └── web_server.h / .cpp    # Criação do e inicialização dos objetos websocket e webserver.
 
 * **Sincronização:** Todas as tarefas que precisam ler ou escrever dados compartilhados (como o setpoint `sp` ou a saída `y`) utilizam um **Mutex** (`xStateMutex`). Isso garante que apenas uma tarefa modifique esses dados por vez, evitando condições de corrida e inconsistências.
 
